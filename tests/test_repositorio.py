@@ -6,6 +6,7 @@ from reservas.repositorio import (
     cancelar_reserva,
     listar_reservas,
     consultar_disponibilidad,
+    reiniciar_base,
     ErrorSuperposicion,
     ErrorCancelacion
 )
@@ -128,6 +129,25 @@ class TestRepositorio(unittest.TestCase):
 
         # Parámetros inválidos (ej. unidad inexistente) deben retornar False en disponibilidad
         self.assertFalse(consultar_disponibilidad("MIC-99", "2026-06-01 11:00", "2026-06-01 12:00", ahora=self.ahora, ruta_db=self.ruta_db))
+
+    def test_reiniciar_base(self):
+        """reiniciar_base borra todas las reservas y reinicia el autoincremento de IDs."""
+        r1 = crear_reserva(
+            "MIC-01", "Dra. Gomez", "2026-06-01 11:00", "2026-06-01 12:00",
+            ahora=self.ahora, ruta_db=self.ruta_db
+        )
+        self.assertEqual(r1["id"], 1)
+
+        reiniciar_base(ruta_db=self.ruta_db)
+        reservas = listar_reservas(ruta_db=self.ruta_db)
+        self.assertEqual(len(reservas), 0)
+
+        # Verificar que el siguiente id vuelve a ser 1
+        r2 = crear_reserva(
+            "MIC-02", "Dr. Perez", "2026-06-01 11:00", "2026-06-01 12:00",
+            ahora=self.ahora, ruta_db=self.ruta_db
+        )
+        self.assertEqual(r2["id"], 1)
 
 
 if __name__ == "__main__":

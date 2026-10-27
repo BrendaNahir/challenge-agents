@@ -112,3 +112,13 @@ def consultar_disponibilidad(unidad, inicio, fin, ahora=None, ruta_db="data/rese
         return True
     except (ErrorValidacion, ErrorSuperposicion):
         return False
+
+def reiniciar_base(ruta_db="data/reservas.db"):
+    """Borra todas las reservas y reinicia el autoincremento de IDs."""
+    db_path = Path(ruta_db)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    with closing(sqlite3.connect(db_path)) as conn:
+        _inicializar_bd(conn)
+        conn.execute("DELETE FROM reservas")
+        conn.execute("DELETE FROM sqlite_sequence WHERE name='reservas'")
+        conn.commit()

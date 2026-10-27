@@ -176,3 +176,44 @@
   (lee y luego inserta); consultar disponibilidad crea la base si no existe;
   la ruta por defecto `data/reservas.db` es relativa, así que hay que
   ejecutar desde la raíz del repo.
+
+## Tarea 5 (entrada escrita por el agente)
+- **Qué se hizo**: Se añadió la función `reiniciar_base` a `reservas/repositorio.py` (con limpieza de tabla y reseteo del autoincremento de IDs) y su respectiva prueba en `tests/test_repositorio.py`. Se implementó la interfaz de consola con `argparse` en `reservas/cli.py` (con `main(argv=None)`) y el punto de entrada en `reservas/__main__.py` para ejecutar con `python -m reservas <comando>`. Los subcomandos implementados son `unidades`, `disponibilidad`, `reservar`, `cancelar`, `listar` y `reiniciar` (exigiendo `--confirmar`), con soporte para las opciones globales `--db` y `--ahora`. Se añadió el manejo de excepciones (`ErrorValidacion`, `ErrorSuperposicion`, `ErrorCancelacion`) imprimiendo en `stderr` y retornando código de salida `1` (0 en éxito). Se desarrollaron pruebas unitarias completas en `tests/test_cli.py` usando bases de datos temporales y `--ahora`.
+- **Archivos que cambiaron**: `reservas/repositorio.py`, `tests/test_repositorio.py`, `reservas/cli.py`, `reservas/__main__.py`, `tests/test_cli.py`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -m unittest discover -s tests` -> Resultado: `Ran 26 tests in 0.972s - OK`.
+
+## Tarea 5 (notas mías sobre el proceso)
+- Pedí la consola con `argparse` (`reservas/cli.py` y `reservas/__main__.py`)
+  con los comandos `unidades`, `disponibilidad`, `reservar`, `cancelar`,
+  `listar` y `reiniciar --confirmar`, y las opciones globales `--db` y
+  `--ahora`. Había indicado no modificar `repositorio.py` sin avisar.
+- Decisión de delegación: el agente me avisó que necesitaba agregar
+  `reiniciar_base` a `repositorio.py` y me pidió consentimiento antes de
+  tocarlo. Lo autorizé con límites: solo agregar la función, sin cambiar
+  las existentes, cerrar la conexión con `closing`, reiniciar el contador
+  de IDs y escribir una prueba.
+- Verificación del límite: `git diff reservas\repositorio.py` mostró solo
+  líneas agregadas (la función `reiniciar_base`) y ninguna borrada.
+- Verificación propia 1: `python -m unittest discover -s tests -v`
+  -> 26 tests OK (los corrí yo).
+- Verificación propia 2: `git status` mostró solo `cli.py`, `__main__.py`,
+  `test_cli.py` (nuevos) y `repositorio.py`, `test_repositorio.py`,
+  `PROGRESS.md` (modificados). `validacion.py`, `superposicion.py`,
+  `SPEC.md` y `GEMINI.md` no cambiaron.
+- Verificación propia 3 (manual, con comandos reales y `--ahora`): reservar
+  MIC-01 10:00-11:00 (ID 1); 10:30-11:30 rechazado; 11:00-12:00 aceptado;
+  MIC-02 10:00-11:00 aceptado; cancelar 1; `disponibilidad` de ese horario
+  dice "disponible"; `listar` conserva la reserva 1 como cancelada.
+  Cada comando es un proceso nuevo, y `listar` vio lo guardado por los
+  anteriores: así comprobé la persistencia (CA6).
+- Verificación propia 4 (códigos de salida): rechazo por superposición
+  -> 1; `listar` -> 0; `reiniciar` sin `--confirmar` -> 1 y no borra;
+  `reiniciar --confirmar` -> 0 y vacía la base; el primer ID después de
+  reiniciar vuelve a ser 1.
+- Limitaciones declaradas: `unidades` usa una ruta relativa
+  (`data/inventario.json`), por lo que hay que ejecutar desde la raíz del
+  repo (de lo contrario no imprime nada y devuelve 0); `disponibilidad`
+  responde "no disponible" ante datos inválidos sin explicar el motivo;
+  `--db` y `--ahora` van antes del subcomando; un error de SQLite no se
+  captura y mostraría un traceback; el mensaje de superposición no lleva
+  el prefijo "Error:" y el de `reiniciar` sí.
