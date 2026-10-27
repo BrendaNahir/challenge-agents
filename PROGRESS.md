@@ -58,5 +58,31 @@
   `hola.txt` con la herramienta WriteFile. Verifiqué el archivo con `dir`
   y `type`.
 
+## Tarea 1: (entrada escrita por el agente)
+- **Qué se hizo**: Se crearon las carpetas `reservas/` y `tests/` con sus respectivos archivos `__init__.py`, y el archivo `data/inventario.json` con las 5 unidades del inventario sin modificar los IDs.
+- **Archivos que cambiaron**: `reservas/__init__.py`, `tests/__init__.py`, `data/inventario.json`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -c "import json; d = json.load(open('data/inventario.json', encoding='utf-8')); print(len(d)); assert len(d) == 5; print('OK')"` -> Resultado: `5 \n OK`.
 
+## Tarea 1: (notas mías sobre el proceso)
+- Con `gemini-3.8-flash`, el pedido falló: "Usage limit reached for
+  gemini-3.8-flash". La opción "Keep trying" repitió el mensaje.
+  `/stats` mostró 4 pedidos, 0 tokens y 0 llamadas a herramientas en esa sesión.
+- Cambié el modelo con `/model` a `gemini-3.5-flash-lite` y el pedido
+  se procesó.
+- Gemini leyó `SPEC.md` y, antes de crear nada, explicó su plan: carpetas
+  `reservas/` y `tests/` con `__init__.py` e `data/inventario.json`.
+  Los `__init__.py` no los había pedido.
+
+- Decisión sobre `__init__.py`: los acepté, aunque no los pedí, porque
+  permiten importar `reservas` como paquete desde las pruebas.
+- Revisión humana: `git status` mostró solo `PROGRESS.md` modificado y las
+  carpetas nuevas; `SPEC.md` y `GEMINI.md` no cambiaron. La prueba del
+  agente solo verificó que hubiera 5 elementos, así que comprobé yo los IDs
+  y los nombres con acento con un comando de Python. Resultado: IDs
+  correctos y nombres correctos (True, True).
+- Observación: `type data\inventario.json` en PowerShell mostró los acentos
+  rotos ("MultÃ­metro"). Era un problema de visualización de la consola,
+  no del archivo.
+- Permisos: las escrituras y ediciones de esta tarea las aprobé yo
+  ("Allow once").
 
