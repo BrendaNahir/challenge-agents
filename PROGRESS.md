@@ -63,7 +63,17 @@
 - **Archivos que cambiaron**: `reservas/__init__.py`, `tests/__init__.py`, `data/inventario.json`, `PROGRESS.md`.
 - **Comando de prueba ejecutado**: `python -c "import json; d = json.load(open('data/inventario.json', encoding='utf-8')); print(len(d)); assert len(d) == 5; print('OK')"` -> Resultado: `5 \n OK`.
 
-## Tarea 1: (notas mías sobre el proceso)
+## Tarea 2: (entrada escrita por el agente)
+- **Qué se hizo**: Se implementó la validación de los datos de una reserva en `reservas/validacion.py` según las reglas R2 a R5 y los supuestos S2 a S5 de SPEC.md (verificación de unidad existente en inventario, solicitante no vacío con espacios limpios, formato de fecha AAAA-MM-DD HH:MM, inicio anterior al fin, duración máxima de 8 horas, inicio no anterior a "ahora" y anticipación máxima de 90 días, con soporte para el parámetro opcional "ahora"). Se escribieron pruebas unitarias exhaustivas con `unittest` en `tests/test_validacion.py` (una prueba por regla/supuesto).
+- **Archivos que cambiaron**: `reservas/validacion.py`, `tests/test_validacion.py`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -m unittest tests/test_validacion.py` -> Resultado: `Ran 7 tests in 0.049s - OK`.
+
+## Tarea 1 (entrada escrita por el agente)
+- **Qué se hizo**: Se crearon las carpetas `reservas/` y `tests/` con sus respectivos archivos `__init__.py`, y el archivo `data/inventario.json` con las 5 unidades del inventario sin modificar los IDs.
+- **Archivos que cambiaron**: `reservas/__init__.py`, `tests/__init__.py`, `data/inventario.json`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -c "import json; d = json.load(open('data/inventario.json', encoding='utf-8')); print(len(d)); assert len(d) == 5; print('OK')"` -> Resultado: `5 \n OK`.
+
+## Tarea 1 (notas mías sobre el proceso)
 - Con `gemini-3.8-flash`, el pedido falló: "Usage limit reached for
   gemini-3.8-flash". La opción "Keep trying" repitió el mensaje.
   `/stats` mostró 4 pedidos, 0 tokens y 0 llamadas a herramientas en esa sesión.
@@ -72,7 +82,6 @@
 - Gemini leyó `SPEC.md` y, antes de crear nada, explicó su plan: carpetas
   `reservas/` y `tests/` con `__init__.py` e `data/inventario.json`.
   Los `__init__.py` no los había pedido.
-
 - Decisión sobre `__init__.py`: los acepté, aunque no los pedí, porque
   permiten importar `reservas` como paquete desde las pruebas.
 - Revisión humana: `git status` mostró solo `PROGRESS.md` modificado y las
@@ -86,3 +95,27 @@
 - Permisos: las escrituras y ediciones de esta tarea las aprobé yo
   ("Allow once").
 
+## Tarea 2 (entrada escrita por el agente)
+- **Qué se hizo**: Se implementó la validación de los datos de una reserva en `reservas/validacion.py` según las reglas R2 a R5 y los supuestos S2 a S5 de SPEC.md (verificación de unidad existente en inventario, solicitante no vacío con espacios limpios, formato de fecha AAAA-MM-DD HH:MM, inicio anterior al fin, duración máxima de 8 horas, inicio no anterior a "ahora" y anticipación máxima de 90 días, con soporte para el parámetro opcional "ahora"). Se escribieron pruebas unitarias exhaustivas con `unittest` en `tests/test_validacion.py` (una prueba por regla/supuesto).
+- **Archivos que cambiaron**: `reservas/validacion.py`, `tests/test_validacion.py`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -m unittest tests/test_validacion.py` -> Resultado: `Ran 7 tests in 0.049s - OK`.
+
+## Tarea 2 (notas mías sobre el proceso)
+- Pedí la validación (R2 a R5, S2 a S5) con el parámetro "ahora"
+  inyectable, para que las pruebas no dependan del reloj.
+- Verificación propia 1: `python -m unittest discover -s tests -v`
+  -> 7 tests OK (los corrí yo, además de lo que informó el agente).
+- Verificación propia 2: revisé `reservas/validacion.py` y comprobé que
+  no tiene caracteres rotos (el conteo de "Ã" dio 0; lo que vi en la
+  consola era un problema de visualización).
+- Verificación propia 3: script independiente fuera del repo con 7 casos
+  de borde (8 h exactas, 8 h 1 min, inicio igual a "ahora", inicio 1 min
+  antes, solo espacios, fecha imposible, unidad inexistente). Resultado:
+  los 7 dieron OK.
+- Python generó carpetas `__pycache__`; agregué un `.gitignore` para
+  no versionarlas.
+- Observación: Gemini insertó su entrada de la Tarea 2 en medio de
+  `PROGRESS.md`, antes de mis notas de la Tarea 1. Reordené el archivo a mano.
+- Limitaciones detectadas al revisar el código (declaradas, sin corregir):
+  usa la hora de la PC y no fuerza UTC-3; "ahora" incluye segundos;
+  `strptime` acepta formatos como `2026-6-1 9:00`.
