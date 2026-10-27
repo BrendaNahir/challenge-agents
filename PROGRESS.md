@@ -217,3 +217,39 @@
   `--db` y `--ahora` van antes del subcomando; un error de SQLite no se
   captura y mostraría un traceback; el mensaje de superposición no lleva
   el prefijo "Error:" y el de `reiniciar` sí.
+
+## Tarea 6 (entrada escrita por el agente)
+- **Qué se hizo**: Se agregó `tests/test_persistencia.py` con `unittest` para comprobar que las reservas activas y canceladas sobreviven al reinicio de la aplicación usando procesos de Python distintos (`subprocess.run`), bases de datos temporales (`tempfile`) y `--ahora` fijo, sin modificar ningún archivo en `reservas/` ni ninguna otra prueba existente.
+- **Archivos que cambiaron**: `tests/test_persistencia.py`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -m unittest discover -s tests` -> Resultado: `Ran 27 tests in 5.370s - OK`.
+
+## Corrección parcial de Tarea 6 (entrada escrita por el agente)
+- **Qué se hizo**: Se corrigieron las comprobaciones sobre la salida de `listar` en `tests/test_persistencia.py`, separando la salida en líneas, comprobando que hay exactamente 2, y verificando específicamente que la línea que empieza con "ID: 1" contiene "Dra. Gomez", "2026-06-01 11:00", "2026-06-01 12:00" y "cancelada", y que la línea que empieza con "ID: 2" contiene "Dr. Perez", "2026-06-01 13:00", "2026-06-01 14:00" y "activa". No se modificó ningún archivo de `reservas/`.
+- **Archivos que cambiaron**: `tests/test_persistencia.py`, `PROGRESS.md`.
+- **Comando de prueba ejecutado**: `python -m unittest discover tests` -> Resultado: `Ran 27 tests in 5.148s - OK`.
+
+## Tarea 6 (notas mías sobre el proceso)
+- Pedí `tests/test_persistencia.py`: una prueba automática de reinicio
+  que ejecuta cada comando en un proceso de Python distinto (`subprocess`
+  con `python -m reservas`), con base temporal y `--ahora` fijo, y sin
+  modificar nada de `reservas/`.
+- Revisión humana: al leer la prueba vi que las comprobaciones sobre la
+  salida de `listar` eran débiles. `assertIn("1", output)` y
+  `assertIn("2", output)` siempre se cumplen porque las fechas contienen
+  esos dígitos, y "cancelada" y "activa" se buscaban en toda la salida sin
+  asociarlas a una reserva concreta. La prueba habría pasado aunque los
+  estados estuvieran cruzados.
+- Decisión: pedí corregir solo ese bloque. Ahora se separa la salida en
+  líneas, se exige que haya exactamente 2, y se verifica que la línea de
+  `ID: 1` tenga "Dra. Gomez", sus dos horas y "cancelada", y la de `ID: 2`
+  tenga "Dr. Perez", sus dos horas y "activa".
+- Verificación propia: `python -m unittest discover -s tests -v` -> 27
+  tests OK (los corrí yo, con la prueba ya corregida); `findstr` confirmó
+  las nuevas comprobaciones de `"ID: 1"` y `"ID: 2"`; `git status` mostró
+  solo `PROGRESS.md` y `tests/test_persistencia.py`; `python -m reservas
+  listar` sin `--db` dijo "No hay reservas registradas.", o sea que la
+  prueba no tocó `data/reservas.db`.
+- La prueba también comprueba que el horario de la reserva cancelada se
+  puede volver a reservar y que el de la activa sigue fallando con código 1.
+- Observación: la prueba tarda más que las otras (unos 6 segundos en total
+  la corrida completa) porque cada comando abre un Python nuevo.
